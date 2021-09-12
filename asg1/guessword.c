@@ -82,23 +82,32 @@ char** combine_words() {
 }
 
 char** split_shadow_file(char** input) {
-    // for (int i = 0; i < input[0]; i++)
+    int num_lines = input[0];
+    // Malloc new array to have user names and hashed passwords
+    char** users_and_hashes = malloc((num_lines*2 + 1) * sizeof(char*) * 20);
+    int i = 1;
+    for (i = 1 ; i < num_lines; ++i)
+        users_and_hashes[i] = malloc(20 * sizeof(char));
+
     char *user_id;
     char *hash;
     char *tmp;
+    int k = 0;
 
-    for (int i = 1; i < 4; i++)
+    for (int j = 1; j < num_lines; j++)
     {
-        user_id = strtok(input[i], ":");
+        user_id = strtok(input[j], ":");
         // printf("%s\n", user_id);
         strtok(NULL, "$");
         strtok(NULL, "$");
         tmp = strtok(NULL, "$");
         hash = strtok(tmp, ":");
         // printf("%s\n", hash);
-        
+        users_and_hashes[k++] = user_id;
+        users_and_hashes[k++] = hash;
+
     }
-    return;
+    return users_and_hashes;
 
 }
 
@@ -120,7 +129,16 @@ int main()
         printf("\n");
     }
 
-    split_shadow_file(lines);
+    char **users_and_hashes = split_shadow_file(lines);
+    for (int i = 0; i < 10; i++)
+    {
+        printf("%s ", users_and_hashes[i]);
+        if (i % 2 == 1 && i != 0)
+            printf("\n");
+    }
+
+    
+
 
 
     return 0;
