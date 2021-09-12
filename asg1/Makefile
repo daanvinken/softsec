@@ -5,8 +5,9 @@ binaries=guessword
 .PHONY: clean all
 
 build:
-	@$(MAKE) --no-print-directory guessword
 	@$(MAKE) --no-print-directory clean
+	@$(MAKE) --no-print-directory guessword
+
 
 guessword:
 	$(CC) $(CFLAGS) -o guessword \guessword.c $(FLAGS)
