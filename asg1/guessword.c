@@ -43,8 +43,6 @@ char** get_file_lines(void *filepath){
             num_lines++;
     }
 
-    // TEMP
-    // num_lines = 10;
     printf("%d lines found.\n", num_lines);
 
     // Malloc output array of strings
@@ -57,8 +55,7 @@ char** get_file_lines(void *filepath){
     char * single_read[CHUNKSIZE];
 
     // Close and re-open file (EOF)
-    fclose(f);
-    f = fopen(filepath, "r");
+    rewind(f);
     i = 0;
 
     // Read file and store in array
@@ -83,8 +80,8 @@ int main()
     printf("%s\n",hash);
     /* **************************** */
 
-    char** lines = get_file_lines("training-passwd.txt");
-    for (int i = 0; i < 15; i++)
+    char** lines = get_file_lines("training-shadow.txt");
+    for (int i = 0; i < 3; i++)
     {
         printf("%s", lines[i]);
         printf("\n");
