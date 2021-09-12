@@ -73,13 +73,19 @@ char** get_file_lines(void *filepath){
 }
 
 // char* hash, char* username
-char* crack_password(char** top250, int len_top250, char* pwd) {
-    for (int i = 1; i < 10; i++)
+char* crack_password(char** top250, int len_top250, char* pwd_hash, char* user) {
+    for (int i = 1; i < 250; i++)
     {
-        char* x = crypt(top250[i], MD5);
-        //TODO split and seperate hash (write function)
+        char* hash = crypt(top250[i], MD5);
+        // TODO make function of this splitting
+        strtok(hash, "$");
+        strtok(NULL, "$");
+        hash = strtok(NULL, "$");
+
         //TODO compare strings
-        printf("%s\n", x);
+        printf("%s  :  %s\n", hash, pwd_hash);
+        if (!strcmp(hash, pwd_hash))
+            printf("Found password %s||%s for pwd %s and user %d", pwd_hash, hash, top250[i], user);
     }
 
 }
@@ -103,6 +109,7 @@ char** split_shadow_file(char** input) {
 
     for (int j = 1; j < num_lines; j++)
     {
+
         // TODO make function of this splitting
         user_id = strtok(input[j], ":");
         // printf("%s\n", user_id);
@@ -113,7 +120,6 @@ char** split_shadow_file(char** input) {
         // printf("%s\n", hash);
         users_and_hashes[k++] = user_id;
         users_and_hashes[k++] = hash;
-
     }
     return users_and_hashes;
 
@@ -122,9 +128,9 @@ char** split_shadow_file(char** input) {
 
 int main()
 {
-    // const char string[] = "iloveyou";
-    // char * hash = crypt(string, MD5);
-    // printf("%s\n",hash);
+    const char string[] = "iloveyou";
+    char * hash = crypt(string, MD5);
+    printf("%s\n",hash);
     /* **************************** */
     printf("\n\n__________________________________________\n");
 
@@ -140,16 +146,14 @@ int main()
     // Split user_id and hashed password into array (each pair of two in array)
     char **users_and_hashes = split_shadow_file(lines);
     // tmp print stuff
-    for (int i = 0; i < 20; i++)
-    {
-        printf("%s ", users_and_hashes[i]);
-        if (i % 2 == 1 && i != 0)
-            printf("\n");
-    }
-
     // Read top250
     char** top250 = get_file_lines("dictionary/clean_top250.txt");
-    crack_password(top250, (int) lines[0], users_and_hashes[1]);
+    for (int i = 0; i < lines[0]; i++)
+    {
+        if (i % 2 == 1 && i != 0)
+            crack_password(top250, (int) lines[0], users_and_hashes[i], users_and_hashes[i-1]);
+    }
+
 
 
 
