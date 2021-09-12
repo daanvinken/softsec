@@ -57,8 +57,8 @@ char** get_file_lines(void *filepath){
     i = 1;
 
     // Read file and store in array
-    while(fgets(&single_read, CHUNKSIZE, f) != NULL && i <= (num_lines + 1)) {
-        strcpy(input_file_lines[i], single_read);
+    while(fgets((char* restrict) &single_read, CHUNKSIZE, f) != NULL && i <= (num_lines + 1)) {
+        strcpy(input_file_lines[i], (const char * restrict) single_read);
         i++;
     }
 
@@ -73,8 +73,15 @@ char** get_file_lines(void *filepath){
 }
 
 // char* hash, char* username
-char* crack_password() {
-    return NULL;
+char* crack_password(char** top250, int len_top250, char* pwd) {
+    for (int i = 1; i < 10; i++)
+    {
+        char* x = crypt(top250[i], MD5);
+        //TODO split and seperate hash (write function)
+        //TODO compare strings
+        printf("%s\n", x);
+    }
+
 }
 
 char** combine_words() {
@@ -96,6 +103,7 @@ char** split_shadow_file(char** input) {
 
     for (int j = 1; j < num_lines; j++)
     {
+        // TODO make function of this splitting
         user_id = strtok(input[j], ":");
         // printf("%s\n", user_id);
         strtok(NULL, "$");
@@ -122,24 +130,34 @@ int main()
 
     // Read file with hashed passwords
     char** lines = get_file_lines("training-shadow.txt");
-    printf("Number of retrieved hashes: %d\n", lines[0]);
-    for (int i = 1; i < 10; i++)
-    {
-        printf("%s", lines[i]);
-        printf("\n");
-    }
+    printf("Number of retrieved hashes: %d\n", (int) lines[0]);
+    // for (int i = 1; i < 10; i++)
+    // {
+    //     printf("%s", lines[i]);
+    //     printf("\n");
+    // }
 
+    // Split user_id and hashed password into array (each pair of two in array)
     char **users_and_hashes = split_shadow_file(lines);
-    for (int i = 0; i < 10; i++)
+    // tmp print stuff
+    for (int i = 0; i < 20; i++)
     {
         printf("%s ", users_and_hashes[i]);
         if (i % 2 == 1 && i != 0)
             printf("\n");
     }
 
-    
+    // Read top250
+    char** top250 = get_file_lines("dictionary/clean_top250.txt");
+    crack_password(top250, (int) lines[0], users_and_hashes[1]);
 
 
 
+
+
+
+    // free(&lines);
+    // free(&users_and_hashes);
+    // free(&top250);
     return 0;
 }
