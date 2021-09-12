@@ -43,28 +43,28 @@ char** get_file_lines(void *filepath){
             num_lines++;
     }
 
-    printf("%d lines found.\n", num_lines);
-
     // Malloc output array of strings
-    char** input_file_lines = malloc(num_lines * sizeof(char*) * CHUNKSIZE);
-    int i = 0;
-    for (i =0 ; i < num_lines; ++i)
+    char** input_file_lines = malloc((num_lines + 1) * sizeof(char*) * CHUNKSIZE);
+    int i = 1;
+    for (i = 1 ; i < (num_lines + 1); ++i)
         input_file_lines[i] = malloc(CHUNKSIZE * sizeof(char));
 
     // Reading buffer
     char * single_read[CHUNKSIZE];
 
-    // Close and re-open file (EOF)
+    // Reset file pointer to beginning
     rewind(f);
-    i = 0;
+    i = 1;
 
     // Read file and store in array
-    while(fgets(&single_read, CHUNKSIZE, f) != NULL && i <= num_lines) {
+    while(fgets(&single_read, CHUNKSIZE, f) != NULL && i <= (num_lines + 1)) {
         strcpy(input_file_lines[i], single_read);
         i++;
     }
-    printf("\n");
-    fflush(stdout);
+
+    // Set array length as first element array
+    input_file_lines[0] = num_lines;
+
     fclose(f);
 
     //FREE MEMORY
@@ -72,20 +72,41 @@ char** get_file_lines(void *filepath){
 
 }
 
+// char* hash, char* username
+char* crack_password() {
+    return NULL;
+}
+
+char** combine_words() {
+    return NULL;
+}
+
+char** split_shadow_file(char** input, int length) {
+    for (int i = 0; i < length; i++)
+    {
+        return;
+    }
+
+}
+
 
 int main()
 {
-    const char string[] = "iloveyou";
-    char * hash = crypt(string, MD5);
-    printf("%s\n",hash);
+    // const char string[] = "iloveyou";
+    // char * hash = crypt(string, MD5);
+    // printf("%s\n",hash);
     /* **************************** */
+    printf("\n\n__________________________________________\n");
 
+    // Read file with hashed passwords
     char** lines = get_file_lines("training-shadow.txt");
-    for (int i = 0; i < 3; i++)
+    printf("Number of retrieved hashes: %d\n", lines[0]);
+    for (int i = 1; i < 10; i++)
     {
         printf("%s", lines[i]);
         printf("\n");
     }
+
 
     return 0;
 }
