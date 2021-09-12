@@ -81,11 +81,24 @@ char** combine_words() {
     return NULL;
 }
 
-char** split_shadow_file(char** input, int length) {
-    for (int i = 0; i < length; i++)
+char** split_shadow_file(char** input) {
+    // for (int i = 0; i < input[0]; i++)
+    char *user_id;
+    char *hash;
+    char *tmp;
+
+    for (int i = 1; i < 4; i++)
     {
-        return;
+        user_id = strtok(input[i], ":");
+        // printf("%s\n", user_id);
+        strtok(NULL, "$");
+        strtok(NULL, "$");
+        tmp = strtok(NULL, "$");
+        hash = strtok(tmp, ":");
+        // printf("%s\n", hash);
+        
     }
+    return;
 
 }
 
@@ -106,6 +119,8 @@ int main()
         printf("%s", lines[i]);
         printf("\n");
     }
+
+    split_shadow_file(lines);
 
 
     return 0;
