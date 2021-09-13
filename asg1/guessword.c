@@ -168,13 +168,14 @@ int main()
     printf("Combined word: %s\n", combined_guesses[2]);
 
     // Hash possible passwords
-    char** hashed_guesses = hash_guesses(guesses, num_shadows, MD5);
+    char** hashed_guesses = hash_guesses(guesses, guesses[0], MD5);
 
     for (int i = 1; i < num_shadows; i+=2)
     {
         count += crack_password(hashed_guesses, users_and_hashes[i]);
         if (count > old_count){
             printf("Cracked %d out of %d passwords!\n", count, num_shadows);
+            printf("User %s - Hash %s\n", users_and_hashes[i-1], users_and_hashes[i]);
             old_count = count;
         }
     }
