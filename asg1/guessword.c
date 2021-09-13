@@ -83,27 +83,24 @@ int crack_password(char** hashed_guesses, char* pwd_hash) {
 
 }
 
-char** combine_words(char** guesses, int len_guesses) {
+char** combine_word(char** guesses, int len_guesses, int first_word_idx) {
     // Allocate big array of combined words
     char** combined_words = malloc((len_guesses + 1) * sizeof(char*) * HASH_CHUNKSIZE);
-    // for (int i = 1 ; i < ((len_guesses)*(len_guesses)) ; ++i)
-    //     combined_words[i] = malloc(HASH_CHUNKSIZE * sizeof(char));
 
-    // Cross concatenate all strings
+    char* first_word = guesses[first_word_idx];
+
+    // Concatenate all strings
     for (int i = 1; i < len_guesses; i++)
     {
-        for (int j = 1; j < 2; j++)
-        {
-            char* tmp_char;
+            // Should be done at earlier stage
+            guesses[i][strcspn(guesses[i], "\n")] = 0;
+            char* tmp_char = malloc(sizeof(char) * CHUNKSIZE);
+            combined_words[i] = malloc(30 * sizeof(char));
+            strcpy(tmp_char, first_word);
+            strcat(tmp_char, guesses[i]);
             combined_words[i] = malloc(HASH_CHUNKSIZE * sizeof(char));
-            // printf("Combined word1: %s", guesses[i]);
-            // printf("Combined word2: %s", guesses[j]);
-            // printf("Now combined: %s", strcat(guesses[i], guesses[j]));
-            strcpy(tmp_char, guesses[i]);
-            // strcat(tmp_char, guesses[j]);
-            // strcpy(combined_words[i], tmp_char);
-            // printf("Now combined: %s", combined_words[i]);
-        }
+            combined_words[i] = tmp_char;
+            free(tmp_char);
     }
 
     return combined_words;
@@ -166,9 +163,9 @@ int main()
     // Read preprocessed input file (possible passwords)
     char** guesses = get_file_lines("dictionary/preprocessed.txt");
 
-    char** combined_guesses = combine_words(guesses, guesses[0]);
+    char** combined_guesses = combine_word(guesses, guesses[0], 2);
 
-    printf("Combined word: %s", combined_guesses[20]);
+    printf("Combined word: %s\n", combined_guesses[20]);
 
     // Hash possible passwords
     char** hashed_guesses = hash_guesses(guesses, 10, MD5);
@@ -181,7 +178,6 @@ int main()
             old_count = count;
         }
     }
-    printf("Cracked %d out of %d passwords!\n", count, num_shadows);
 
     return 0;
 }
