@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <crypt.h>
+#include <stdint.h>
 
 /******************************************************************************
 * Global definitions
@@ -62,24 +63,26 @@ char** get_file_lines(void *filepath){
     }
 
     // Set array length as first element array
-    input_file_lines[0] = num_lines;
+    input_file_lines[0] = (char*) num_lines;
 
     fclose(f);
-
-    //FREE MEMORY
     return input_file_lines;
 
 }
 
-char* crack_password(char** top250, int len_top250, char* pwd_hash, char *user) {
-    char* salt;
-    for (int i = 1; i < 5; i++)
+int crack_password(char** top250, int len_top250, char* pwd_hash) {
+    for (int i = 1; i < 250; i++)
     {
+        // Clean string of return character
         top250[i][strcspn(top250[i], "\n")] = 0;
+
         char* hash = crypt(top250[i], MD5);
         if (!strcmp(hash, pwd_hash))
-            printf("\nFound password for user %s: %s (hash %s)\n", user, top250[i], hash);
+        {
+            return 1;
+        }
     }
+    return 0;
 
 }
 
@@ -87,8 +90,8 @@ char** combine_words() {
     return NULL;
 }
 
-char** split_shadow_file(char** input) {
-    int num_lines = input[0];
+char** split_shadow_file(char** input, int num_lines) {
+
     // Malloc new array to have user names and hashed passwords
     char** users_and_hashes = malloc((num_lines*2 + 1) * sizeof(char*) * 20);
     int i = 1;
@@ -118,29 +121,20 @@ int main()
 
     // Read file with hashed passwords
     char** lines = get_file_lines("training-shadow.txt");
-    printf("Number of retrieved hashes: %d\n", (int) lines[0]);
-
+    int num_lines = lines[0];
+    int count = 0;
 
     // Split user_id and hashed password into array (each pair of two in array)
-    char **users_and_hashes = split_shadow_file(lines);
-    // tmp print stuff
+    char **users_and_hashes = split_shadow_file(lines, num_lines);
     // Read top250
     char** top250 = get_file_lines("dictionary/clean_top250.txt");
-    for (int i = 0; i < (int) lines[0]; i++)
+
+    for (int i = 0; i < num_lines; i++)
     {
-        if (i % 2 == 1 && i != 0){
-            crack_password(top250, (int) lines[0], users_and_hashes[i], users_and_hashes[i+1]);
-        }
+        if (i % 2 == 1 && i != 0)
+            count += crack_password(top250, num_lines, users_and_hashes[i]);
     }
+    printf("Cracked %d out of %d passwords!\n", count, num_lines);
 
-
-
-
-
-
-
-    // free(&lines);
-    // free(&users_and_hashes);
-    // free(&top250);
     return 0;
 }
