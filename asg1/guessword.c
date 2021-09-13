@@ -21,6 +21,7 @@
 *******************************************************************************/
 #define MD5 "$1$QM"
 #define CHUNKSIZE 100
+#define HASH_CHUNKSIZE 20
 
 /******************************************************************************
 * Main code
@@ -63,21 +64,17 @@ char** get_file_lines(void *filepath){
     }
 
     // Set array length as first element array
-    input_file_lines[0] = (char*) num_lines;
+    input_file_lines[0] = num_lines;
 
     fclose(f);
     return input_file_lines;
 
 }
 
-int crack_password(char** top250, int len_top250, char* pwd_hash) {
-    for (int i = 1; i < 250; i++)
+int crack_password(char** hashed_guesses, char* pwd_hash) {
+    for (int i = 1; i < hashed_guesses[0]; i++)
     {
-        // Clean string of return character
-        top250[i][strcspn(top250[i], "\n")] = 0;
-
-        char* hash = crypt(top250[i], MD5);
-        if (!strcmp(hash, pwd_hash))
+        if (!strcmp(hashed_guesses[i], pwd_hash))
         {
             return 1;
         }
@@ -113,6 +110,23 @@ char** split_shadow_file(char** input, int num_lines) {
 
 }
 
+char** hash_guesses(char** guesses, int len_guesses, char** salt) {
+    char** hashed_guesses = malloc((len_guesses+1) * sizeof(char*) * HASH_CHUNKSIZE);
+    char* tmp_hash;
+    for (int i = 1 ; i < (len_guesses + 1); ++i)
+        hashed_guesses[i] = malloc(HASH_CHUNKSIZE * sizeof(char));
+
+    for (int i = 1; i < len_guesses; i++)
+    {
+        // Clean string of return character
+        guesses[i][strcspn(guesses[i], "\n")] = 0;
+        tmp_hash = crypt(guesses[i], MD5);
+        strcpy(hashed_guesses[i], (const char * restrict) tmp_hash);
+    }
+    hashed_guesses[0] = len_guesses;
+    return hashed_guesses;
+}
+
 
 int main()
 {
@@ -123,16 +137,25 @@ int main()
     char** lines = get_file_lines("training-shadow.txt");
     int num_lines = lines[0];
     int count = 0;
+    int old_count = 0;
 
     // Split user_id and hashed password into array (each pair of two in array)
     char **users_and_hashes = split_shadow_file(lines, num_lines);
     // Read top250
-    char** top250 = get_file_lines("dictionary/clean_top250.txt");
+    char** guesses = get_file_lines("dictionary/preprocessed.txt");
+
+    // Hash possible passwords
+    char** hashed_guesses = hash_guesses(guesses, guesses[0], MD5);
 
     for (int i = 0; i < num_lines; i++)
     {
-        if (i % 2 == 1 && i != 0)
-            count += crack_password(top250, num_lines, users_and_hashes[i]);
+        if (i % 2 == 1 && i != 0){
+            count += crack_password(hashed_guesses, users_and_hashes[i]);
+        }
+        if (count > old_count){
+            printf("Cracked %d out of %d passwords!\n", count, num_lines);
+            old_count = count;
+        }
     }
     printf("Cracked %d out of %d passwords!\n", count, num_lines);
 
