@@ -83,8 +83,17 @@ int crack_password(char** hashed_guesses, char* pwd_hash) {
 
 }
 
-char** combine_words() {
-    return NULL;
+char** combine_words(char** guesses, int len_guesses, int first_word_idx) {
+    char* first_word = guesses[first_word_idx];
+    char** combined_words = malloc((len_guesses+1) * sizeof(char*) * HASH_CHUNKSIZE);
+    for (int i = 1 ; i < (len_guesses + 1); ++i)
+        combined_words[i] = malloc(HASH_CHUNKSIZE * sizeof(char));
+    for (int i = 1; i < len_guesses; i++)
+    {
+        combined_words[i] = strcat(first_word, guesses[i]);
+    }
+
+    return combined_words;
 }
 
 char** split_shadow_file(char** input, int num_lines) {
@@ -130,34 +139,31 @@ char** hash_guesses(char** guesses, int len_guesses, char** salt) {
 
 int main()
 {
-    /* **************************** */
-    printf("\n_____________________________________________________\n");
+    printf("\n_____________________________________________________\n\n");
 
     // Read file with hashed passwords
     char** lines = get_file_lines("training-shadow.txt");
-    int num_lines = lines[0];
+    int num_shadows = 10;
     int count = 0;
     int old_count = 0;
 
     // Split user_id and hashed password into array (each pair of two in array)
-    char **users_and_hashes = split_shadow_file(lines, num_lines);
+    char **users_and_hashes = split_shadow_file(lines, num_shadows);
     // Read top250
     char** guesses = get_file_lines("dictionary/preprocessed.txt");
 
     // Hash possible passwords
-    char** hashed_guesses = hash_guesses(guesses, guesses[0], MD5);
+    char** hashed_guesses = hash_guesses(guesses, 10, MD5);
 
-    for (int i = 0; i < num_lines; i++)
+    for (int i = 1; i < num_shadows; i+=2)
     {
-        if (i % 2 == 1 && i != 0){
-            count += crack_password(hashed_guesses, users_and_hashes[i]);
-        }
+        count += crack_password(hashed_guesses, users_and_hashes[i]);
         if (count > old_count){
-            printf("Cracked %d out of %d passwords!\n", count, num_lines);
+            printf("Cracked %d out of %d passwords!\n", count, num_shadows);
             old_count = count;
         }
     }
-    printf("Cracked %d out of %d passwords!\n", count, num_lines);
+    printf("Cracked %d out of %d passwords!\n", count, num_shadows);
 
     return 0;
 }
