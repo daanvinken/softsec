@@ -143,7 +143,7 @@ int main()
 
     // Read file with hashed passwords
     char** lines = get_file_lines("training-shadow.txt");
-    int num_shadows = 10;
+    int num_shadows = lines[0];
     int count = 0;
     int old_count = 0;
 
@@ -153,7 +153,7 @@ int main()
     char** guesses = get_file_lines("dictionary/preprocessed.txt");
 
     // Hash possible passwords
-    char** hashed_guesses = hash_guesses(guesses, 10, MD5);
+    char** hashed_guesses = hash_guesses(guesses, guesses[0], MD5);
 
     for (int i = 1; i < num_shadows; i+=2)
     {
