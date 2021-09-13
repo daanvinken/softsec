@@ -95,11 +95,11 @@ char** combine_word(char** guesses, int len_guesses, int first_word_idx) {
             // Should be done at earlier stage
             guesses[i][strcspn(guesses[i], "\n")] = 0;
             char* tmp_char = malloc(sizeof(char) * CHUNKSIZE);
-            combined_words[i] = malloc(30 * sizeof(char));
-            strcpy(tmp_char, first_word);
+            combined_words[i] = malloc(HASH_CHUNKSIZE * sizeof(char));
+            strncpy(tmp_char, first_word, HASH_CHUNKSIZE);
             strcat(tmp_char, guesses[i]);
             combined_words[i] = malloc(HASH_CHUNKSIZE * sizeof(char));
-            combined_words[i] = tmp_char;
+            strncpy(combined_words[i], tmp_char, HASH_CHUNKSIZE);
             free(tmp_char);
     }
 
@@ -153,7 +153,7 @@ int main()
 
     // Read file with hashed passwords
     char** lines = get_file_lines("training-shadow.txt");
-    int num_shadows = 10;
+    int num_shadows = lines[0];
     int count = 0;
     int old_count = 0;
 
@@ -165,10 +165,10 @@ int main()
 
     char** combined_guesses = combine_word(guesses, guesses[0], 2);
 
-    printf("Combined word: %s\n", combined_guesses[20]);
+    printf("Combined word: %s\n", combined_guesses[2]);
 
     // Hash possible passwords
-    char** hashed_guesses = hash_guesses(guesses, 10, MD5);
+    char** hashed_guesses = hash_guesses(guesses, num_shadows, MD5);
 
     for (int i = 1; i < num_shadows; i+=2)
     {
