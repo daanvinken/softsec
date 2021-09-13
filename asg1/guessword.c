@@ -153,7 +153,7 @@ int main()
 
     // Read file with hashed passwords
     char** lines = get_file_lines("training-shadow.txt");
-    int num_shadows = lines[0];
+    int num_shadows = 10000;
     int count = 0;
     int old_count = 0;
 
@@ -161,24 +161,35 @@ int main()
     char **users_and_hashes = split_shadow_file(lines, num_shadows);
 
     // Read preprocessed input file (possible passwords)
-    char** guesses = get_file_lines("dictionary/preprocessed.txt");
+    char** guesses = get_file_lines("dictionary/preprocessed_lower.txt");
 
-    char** combined_guesses = combine_word(guesses, guesses[0], 2);
-
-    printf("Combined word: %s\n", combined_guesses[2]);
-
-    // Hash possible passwords
-    char** hashed_guesses = hash_guesses(guesses, guesses[0], MD5);
-
-    for (int i = 1; i < num_shadows; i+=2)
+    for (int multiplier = 0; multiplier < 10; multiplier++)
     {
-        count += crack_password(hashed_guesses, users_and_hashes[i]);
-        if (count > old_count){
-            printf("Cracked %d out of %d passwords!\n", count, num_shadows);
-            printf("User %s - Hash %s\n", users_and_hashes[i-1], users_and_hashes[i]);
-            old_count = count;
+
+        // Loop for guesses (j)
+        for (int j = (multiplier * 1000 + 1); j < ((multiplier + 1) * 1000); j++)
+        {
+            char** combined_guesses = combine_word(guesses, 1000, j);
+            char** hashed_guesses = hash_guesses(combined_guesses, 1000, MD5);
+            for (int i = 1; i < num_shadows; i+=2)
+            {
+                count += crack_password(hashed_guesses, users_and_hashes[i]);
+                if (count > old_count){
+                    // printf("_____________\n");
+                    // printf("multiplier = %d\n", multiplier);
+                    // printf("j = %d\n", j);
+                    // printf("i = %d\n", i);
+                    // printf("_____________\n");
+                    // printf("Cracked %d out of %d passwords!\n", count, num_shadows);
+                    printf("%s:%s\n", users_and_hashes[i-1], users_and_hashes[i]);
+                    old_count = count;
+                }
+            }
         }
+        printf("multiplier = %d", multiplier);
     }
+
+
 
     return 0;
 }
