@@ -83,14 +83,27 @@ int crack_password(char** hashed_guesses, char* pwd_hash) {
 
 }
 
-char** combine_words(char** guesses, int len_guesses, int first_word_idx) {
-    char* first_word = guesses[first_word_idx];
-    char** combined_words = malloc((len_guesses+1) * sizeof(char*) * HASH_CHUNKSIZE);
-    for (int i = 1 ; i < (len_guesses + 1); ++i)
-        combined_words[i] = malloc(HASH_CHUNKSIZE * sizeof(char));
+char** combine_words(char** guesses, int len_guesses) {
+    // Allocate big array of combined words
+    char** combined_words = malloc((len_guesses + 1) * sizeof(char*) * HASH_CHUNKSIZE);
+    // for (int i = 1 ; i < ((len_guesses)*(len_guesses)) ; ++i)
+    //     combined_words[i] = malloc(HASH_CHUNKSIZE * sizeof(char));
+
+    // Cross concatenate all strings
     for (int i = 1; i < len_guesses; i++)
     {
-        combined_words[i] = strcat(first_word, guesses[i]);
+        for (int j = 1; j < 2; j++)
+        {
+            char* tmp_char;
+            combined_words[i] = malloc(HASH_CHUNKSIZE * sizeof(char));
+            // printf("Combined word1: %s", guesses[i]);
+            // printf("Combined word2: %s", guesses[j]);
+            // printf("Now combined: %s", strcat(guesses[i], guesses[j]));
+            strcpy(tmp_char, guesses[i]);
+            // strcat(tmp_char, guesses[j]);
+            // strcpy(combined_words[i], tmp_char);
+            // printf("Now combined: %s", combined_words[i]);
+        }
     }
 
     return combined_words;
@@ -99,7 +112,7 @@ char** combine_words(char** guesses, int len_guesses, int first_word_idx) {
 char** split_shadow_file(char** input, int num_lines) {
 
     // Malloc new array to have user names and hashed passwords
-    char** users_and_hashes = malloc((num_lines*2 + 1) * sizeof(char*) * 20);
+    char** users_and_hashes = malloc((num_lines*2 + 1) * sizeof(char*) * HASH_CHUNKSIZE);
     int i = 1;
     for (i = 1 ; i < num_lines; ++i)
         users_and_hashes[i] = malloc(20 * sizeof(char));
@@ -149,8 +162,13 @@ int main()
 
     // Split user_id and hashed password into array (each pair of two in array)
     char **users_and_hashes = split_shadow_file(lines, num_shadows);
-    // Read top250
+
+    // Read preprocessed input file (possible passwords)
     char** guesses = get_file_lines("dictionary/preprocessed.txt");
+
+    char** combined_guesses = combine_words(guesses, guesses[0]);
+
+    printf("Combined word: %s", combined_guesses[20]);
 
     // Hash possible passwords
     char** hashed_guesses = hash_guesses(guesses, 10, MD5);
