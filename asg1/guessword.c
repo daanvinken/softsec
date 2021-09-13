@@ -76,7 +76,7 @@ int crack_password(char** hashed_guesses, char* pwd_hash) {
     {
         if (!strcmp(hashed_guesses[i], pwd_hash))
         {
-            return 1;
+            return i;
         }
     }
     return 0;
@@ -153,7 +153,7 @@ int main()
 
     // Read file with hashed passwords
     char** lines = get_file_lines("training-shadow.txt");
-    int num_shadows = 10000;
+    int num_shadows = 1000;
     int count = 0;
     int old_count = 0;
 
@@ -163,30 +163,25 @@ int main()
     // Read preprocessed input file (possible passwords)
     char** guesses = get_file_lines("dictionary/preprocessed_lower.txt");
 
+    int found_index;
+
     for (int multiplier = 0; multiplier < 10; multiplier++)
     {
 
         // Loop for guesses (j)
         for (int j = (multiplier * 1000 + 1); j < ((multiplier + 1) * 1000); j++)
         {
-            char** combined_guesses = combine_word(guesses, 1000, j);
-            char** hashed_guesses = hash_guesses(combined_guesses, 1000, MD5);
+            char** combined_guesses = combine_word(guesses, guesses[0], j);
+            char** hashed_guesses = hash_guesses(combined_guesses, guesses[0], MD5);
             for (int i = 1; i < num_shadows; i+=2)
             {
-                count += crack_password(hashed_guesses, users_and_hashes[i]);
-                if (count > old_count){
-                    // printf("_____________\n");
-                    // printf("multiplier = %d\n", multiplier);
-                    // printf("j = %d\n", j);
-                    // printf("i = %d\n", i);
-                    // printf("_____________\n");
-                    // printf("Cracked %d out of %d passwords!\n", count, num_shadows);
-                    printf("%s:%s\n", users_and_hashes[i-1], users_and_hashes[i]);
-                    old_count = count;
+                found_index = crack_password(hashed_guesses, users_and_hashes[i]);
+                if (found_index){
+                    printf("%s:%s\n", users_and_hashes[i-1], combined_guesses[found_index]);
                 }
             }
         }
-        printf("multiplier = %d", multiplier);
+        printf("multiplier = %d\n", multiplier);
     }
 
 
