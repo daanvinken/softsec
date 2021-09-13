@@ -18,8 +18,7 @@
 /******************************************************************************
 * Global definitions
 *******************************************************************************/
-#define MD5 "$1$M9"
-#define SALT "M9"
+#define MD5 "$1$QM"
 #define CHUNKSIZE 100
 
 /******************************************************************************
@@ -72,20 +71,14 @@ char** get_file_lines(void *filepath){
 
 }
 
-// char* hash, char* username
-char* crack_password(char** top250, int len_top250, char* pwd_hash, char* user) {
-    for (int i = 1; i < 250; i++)
+char* crack_password(char** top250, int len_top250, char* pwd_hash, char *user) {
+    char* salt;
+    for (int i = 1; i < 5; i++)
     {
+        top250[i][strcspn(top250[i], "\n")] = 0;
         char* hash = crypt(top250[i], MD5);
-        // TODO make function of this splitting
-        strtok(hash, "$");
-        strtok(NULL, "$");
-        hash = strtok(NULL, "$");
-
-        //TODO compare strings
-        printf("%s  :  %s\n", hash, pwd_hash);
         if (!strcmp(hash, pwd_hash))
-            printf("Found password %s||%s for pwd %s and user %d", pwd_hash, hash, top250[i], user);
+            printf("\nFound password for user %s: %s (hash %s)\n", user, top250[i], hash);
     }
 
 }
@@ -104,20 +97,12 @@ char** split_shadow_file(char** input) {
 
     char *user_id;
     char *hash;
-    char *tmp;
     int k = 0;
 
     for (int j = 1; j < num_lines; j++)
     {
-
-        // TODO make function of this splitting
         user_id = strtok(input[j], ":");
-        // printf("%s\n", user_id);
-        strtok(NULL, "$");
-        strtok(NULL, "$");
-        tmp = strtok(NULL, "$");
-        hash = strtok(tmp, ":");
-        // printf("%s\n", hash);
+        hash = strtok(NULL, ":");
         users_and_hashes[k++] = user_id;
         users_and_hashes[k++] = hash;
     }
@@ -128,30 +113,24 @@ char** split_shadow_file(char** input) {
 
 int main()
 {
-    const char string[] = "iloveyou";
-    char * hash = crypt(string, MD5);
-    printf("%s\n",hash);
     /* **************************** */
-    printf("\n\n__________________________________________\n");
+    printf("\n_____________________________________________________\n");
 
     // Read file with hashed passwords
     char** lines = get_file_lines("training-shadow.txt");
     printf("Number of retrieved hashes: %d\n", (int) lines[0]);
-    // for (int i = 1; i < 10; i++)
-    // {
-    //     printf("%s", lines[i]);
-    //     printf("\n");
-    // }
+
 
     // Split user_id and hashed password into array (each pair of two in array)
     char **users_and_hashes = split_shadow_file(lines);
     // tmp print stuff
     // Read top250
     char** top250 = get_file_lines("dictionary/clean_top250.txt");
-    for (int i = 0; i < lines[0]; i++)
+    for (int i = 0; i < (int) lines[0]; i++)
     {
-        if (i % 2 == 1 && i != 0)
-            crack_password(top250, (int) lines[0], users_and_hashes[i], users_and_hashes[i-1]);
+        if (i % 2 == 1 && i != 0){
+            crack_password(top250, (int) lines[0], users_and_hashes[i], users_and_hashes[i+1]);
+        }
     }
 
 
