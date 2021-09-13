@@ -59,6 +59,7 @@ char** get_file_lines(void *filepath){
 
     // Read file and store in array
     while(fgets((char* restrict) &single_read, CHUNKSIZE, f) != NULL && i <= (num_lines + 1)) {
+        single_read[strcspn(single_read, "\n")] = 0;
         strcpy(input_file_lines[i], (const char * restrict) single_read);
         i++;
     }
@@ -114,16 +115,12 @@ char** split_shadow_file(char** input, int num_lines) {
     for (i = 1 ; i < num_lines; ++i)
         users_and_hashes[i] = malloc(20 * sizeof(char));
 
-    char *user_id;
-    char *hash;
     int k = 0;
 
     for (int j = 1; j < num_lines; j++)
     {
-        user_id = strtok(input[j], ":");
-        hash = strtok(NULL, ":");
-        users_and_hashes[k++] = user_id;
-        users_and_hashes[k++] = hash;
+        users_and_hashes[k++] = strtok(input[j], ":");
+        users_and_hashes[k++] = strtok(NULL, ":");
     }
     return users_and_hashes;
 
@@ -146,45 +143,71 @@ char** hash_guesses(char** guesses, int len_guesses, char** salt) {
     return hashed_guesses;
 }
 
-
 int main()
 {
     printf("\n_____________________________________________________\n\n");
 
     // Read file with hashed passwords
     char** lines = get_file_lines("training-shadow.txt");
-    int num_shadows = 1000;
+    int num_shadows = 10000;
     int count = 0;
-    int old_count = 0;
+    int found_index;
+    char** guesses;
+    char** combined_guesses;
+    char** hashed_guesses;
 
     // Split user_id and hashed password into array (each pair of two in array)
     char **users_and_hashes = split_shadow_file(lines, num_shadows);
 
-    // Read preprocessed input file (possible passwords)
-    char** guesses = get_file_lines("dictionary/preprocessed_lower.txt");
+    // Read preprocessed uppercase input file (possible passwords)
+    guesses = get_file_lines("dictionary/preprocessed_upper.txt");
 
-    int found_index;
+    int num_guesses = guesses[0];
 
-    for (int multiplier = 0; multiplier < 10; multiplier++)
+    // Non-combined uppercase words
+    hashed_guesses = hash_guesses(guesses, num_guesses, MD5);
+
+    for (int i = 1; i < num_shadows; i+=2)
     {
-
-        // Loop for guesses (j)
-        for (int j = (multiplier * 1000 + 1); j < ((multiplier + 1) * 1000); j++)
-        {
-            char** combined_guesses = combine_word(guesses, guesses[0], j);
-            char** hashed_guesses = hash_guesses(combined_guesses, guesses[0], MD5);
-            for (int i = 1; i < num_shadows; i+=2)
-            {
-                found_index = crack_password(hashed_guesses, users_and_hashes[i]);
-                if (found_index){
-                    printf("%s:%s\n", users_and_hashes[i-1], combined_guesses[found_index]);
-                }
-            }
+        found_index = crack_password(hashed_guesses, users_and_hashes[i]);
+        if (found_index){
+            printf("%s:%s\n", users_and_hashes[i-1], guesses[found_index]);
+            fflush(stdout);
+            count++;
         }
-        printf("multiplier = %d\n", multiplier);
     }
 
+    // Read preprocessed lowercase file (possible passwords)
+    guesses = get_file_lines("dictionary/preprocessed_lower.txt");
 
+    num_guesses = guesses[0];
+
+    // Non-combined uppercase words
+    hashed_guesses = hash_guesses(guesses, num_guesses, MD5);
+    for (int i = 1; i < num_shadows; i+=2)
+        {
+            found_index = crack_password(hashed_guesses, users_and_hashes[i]);
+            if (found_index){
+                printf("%s:%s\n", users_and_hashes[i-1], guesses[found_index]);
+                fflush(stdout);
+                count++;
+            }
+        }
+
+    // TODO multiplier loop stuff
+    // OR PASSING HASHES THROUGH TO COMBINE WORD THREAD
+    for (int j = 1; j < num_guesses; j++)
+    {
+        combined_guesses = combine_word(guesses, guesses[0], j);
+        hashed_guesses = hash_guesses(combined_guesses, guesses[0], MD5);
+        for (int i = 1; i < num_shadows; i+=2)
+        {
+            found_index = crack_password(hashed_guesses, users_and_hashes[i]);
+            if (found_index){
+                printf("%s:%s", users_and_hashes[i-1], guesses[found_index]);
+            }
+        }
+    }
 
     return 0;
 }
