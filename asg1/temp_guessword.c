@@ -44,7 +44,6 @@ char** get_file_lines(void *filepath){
         if(character == '\n')
             num_lines++;
     }
-    num_lines *= 2;
 
     // Malloc output array of strings
     char** input_file_lines = malloc((num_lines + 1) * sizeof(char*) * CHUNKSIZE);
@@ -182,6 +181,7 @@ int main()
             count++;
         }
     }
+    printf("Done upper\n");
 
     // Read preprocessed lowercase file (possible passwords)
     guesses = get_file_lines("dictionary/preprocessed_lower.txt");
@@ -190,6 +190,7 @@ int main()
 
     // Non-combined numbers
     hashed_guesses = hash_guesses(guesses, num_guesses, MD5);
+    printf("Done hashing lower\n");
     for (int i = 1; i < num_shadows; i+=2)
     {
         found_index = crack_password(hashed_guesses, users_and_hashes[i]);
@@ -199,6 +200,7 @@ int main()
             count++;
         }
     }
+    printf("Done lower\n");
 
 
     // Read preprocessed numbers file (possible passwords)
@@ -217,6 +219,15 @@ int main()
             count++;
         }
     }
+
+    printf("Done numbers\n");
+
+    // time(&end_uppercase);
+    // diff = difftime(end_uppercase, start);
+    // printf("Uppercase took %.2lf seconds to run.\n", diff);
+    // time(&end_lowercase);
+    // diff = difftime(end_lowercase, start);
+    // printf("lowercase took %.2lf seconds to run.\n", diff);
 
     guesses = get_file_lines("dictionary/preprocessed_lower.txt");
 
@@ -239,6 +250,7 @@ int main()
             }
         }
     }
+    printf("So far found %d passwords\n", count);
 
     return 0;
 }
