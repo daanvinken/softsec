@@ -13,7 +13,13 @@ build:
 	@$(MAKE) --no-print-directory guessword
 
 run:
-	./guessword
+	@$(MAKE) --no-print-directory run-testing
+
+run-testing:
+	./guessword testing-passwd.txt testing-shadow.txt
+
+run-training:
+	./guessword training-passwd.txt training-shadow.txt
 
 guessword:
 	$(CC) $(CFLAGS) -o guessword \guessword.c $(FLAGS)
