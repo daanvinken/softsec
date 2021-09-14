@@ -15,6 +15,7 @@
 #include <string.h>
 #include <crypt.h>
 #include <stdint.h>
+#include <time.h>
 
 /******************************************************************************
 * Global definitions
@@ -147,6 +148,10 @@ int main()
 {
     printf("\n_____________________________________________________\n\n");
 
+    time_t start, end_uppercase, end_lowercase;
+    double diff;
+    time(&start);
+
     // Read file with hashed passwords
     char** lines = get_file_lines("training-shadow.txt");
     int num_shadows = 10000;
@@ -177,6 +182,10 @@ int main()
         }
     }
 
+    time(&end_uppercase);
+    diff = difftime(end_uppercase, start);
+    printf("Uppercase took %.2lf seconds to run.\n", diff);
+
     // Read preprocessed lowercase file (possible passwords)
     guesses = get_file_lines("dictionary/preprocessed_lower.txt");
 
@@ -194,20 +203,24 @@ int main()
             }
         }
 
+    time(&end_lowercase);
+    diff = difftime(end_lowercase, start);
+    printf("lowercase took %.2lf seconds to run.\n", diff);
+
     // TODO multiplier loop stuff
     // OR PASSING HASHES THROUGH TO COMBINE WORD THREAD
-    for (int j = 1; j < num_guesses; j++)
-    {
-        combined_guesses = combine_word(guesses, guesses[0], j);
-        hashed_guesses = hash_guesses(combined_guesses, guesses[0], MD5);
-        for (int i = 1; i < num_shadows; i+=2)
-        {
-            found_index = crack_password(hashed_guesses, users_and_hashes[i]);
-            if (found_index){
-                printf("%s:%s", users_and_hashes[i-1], guesses[found_index]);
-            }
-        }
-    }
+    // for (int j = 1; j < num_guesses; j++)
+    // {
+    //     combined_guesses = combine_word(guesses, guesses[0], j);
+    //     hashed_guesses = hash_guesses(combined_guesses, guesses[0], MD5);
+    //     for (int i = 1; i < num_shadows; i+=2)
+    //     {
+    //         found_index = crack_password(hashed_guesses, users_and_hashes[i]);
+    //         if (found_index){
+    //             printf("%s:%s", users_and_hashes[i-1], guesses[found_index]);
+    //         }
+    //     }
+    // }
 
     return 0;
 }
