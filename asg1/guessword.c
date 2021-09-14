@@ -165,6 +165,7 @@ int main()
     // Split user_id and hashed password into array (each pair of two in array)
     char **users_and_hashes = split_shadow_file(lines, num_shadows);
 
+
     // Read preprocessed uppercase input file (possible passwords)
     guesses = get_file_lines("dictionary/preprocessed_upper.txt");
 
