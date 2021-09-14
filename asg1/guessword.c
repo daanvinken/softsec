@@ -143,15 +143,16 @@ char** hash_guesses(char** guesses, int len_guesses, char** salt) {
     return hashed_guesses;
 }
 
-int main()
-{
-    printf("\n_____________________________________________________\n\n");
+int main(int argc, char const *argv[])
 
-    time_t start, end_uppercase, end_lowercase;
-    double diff;
+{
+   if( argc > 4 || argc < 2  ) {
+      printf("Too many/little arguments supplied.\n");
+      return -1;
+   }
 
     // Read file with hashed passwords
-    char** lines = get_file_lines("testing-shadow.txt");
+    char** lines = get_file_lines(argv[2]);
     int num_shadows = lines[0];
     int count = 0;
     int found_index;
