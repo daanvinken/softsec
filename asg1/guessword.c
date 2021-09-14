@@ -20,13 +20,13 @@
 /******************************************************************************
 * Global definitions
 *******************************************************************************/
-#define MD5 "$1$QM"
 #define CHUNKSIZE 100
-#define HASH_CHUNKSIZE 60
+#define HASH_CHUNKSIZE 32
 
 /******************************************************************************
 * Main code
 *******************************************************************************/
+
 
 char** get_file_lines(void *filepath){
     FILE *f = fopen(filepath, "r");
@@ -136,7 +136,7 @@ char** hash_guesses(char** guesses, int len_guesses, char** salt) {
         // Clean string of return character
         guesses[i][strcspn(guesses[i], "\n")] = 0;
         // printf("guesses[%d] = %s\n", i, guesses[i]);
-        tmp_hash = crypt(guesses[i], MD5);
+        tmp_hash = crypt(guesses[i], salt);
         strcpy(hashed_guesses[i], (const char * restrict) tmp_hash);
     }
     hashed_guesses[0] = len_guesses;
@@ -149,7 +149,6 @@ int main()
 
     time_t start, end_uppercase, end_lowercase;
     double diff;
-    time(&start);
 
     // Read file with hashed passwords
     char** lines = get_file_lines("testing-shadow.txt");
@@ -172,8 +171,16 @@ int main()
 
     int num_guesses = guesses[0];
 
+    // Determine salt
+    strtok(users_and_hashes[1], "$");
+    char* tmp_char = strtok(NULL, "$");
+
+
+    char salt[HASH_CHUNKSIZE] =  "$1$";
+    strcat(salt, tmp_char);
+
     // Non-combined uppercase words
-    hashed_guesses = hash_guesses(guesses, num_guesses, MD5);
+    hashed_guesses = hash_guesses(guesses, num_guesses, salt);
 
     for (int i = 1; i < num_shadows; i+=2)
     {
@@ -193,7 +200,7 @@ int main()
 
     num_guesses = guesses_lowercase[0];
     // Non-combined numbers
-    hashed_guesses = hash_guesses(guesses_lowercase, num_guesses, MD5);
+    hashed_guesses = hash_guesses(guesses_lowercase, num_guesses, salt);
     for (int i = 1; i < num_shadows; i+=2)
     {
         found_index = crack_password(hashed_guesses, users_and_hashes[i]);
@@ -204,24 +211,6 @@ int main()
         }
     }
 
-    //************************************//
-    //************ Lowercase with small numbers *************//
-    //************************************//
-    // // Read preprocessed lowercase file (possible passwords)
-    // guesses_lowercase = get_file_lines("dictionary/preprocessed_lower_withnumbers.txt");
-
-    // num_guesses = guesses_lowercase[0];
-    // // Non-combined numbers
-    // hashed_guesses = hash_guesses(guesses_lowercase, num_guesses, MD5);
-    // for (int i = 1; i < num_shadows; i+=2)
-    // {
-    //     found_index = crack_password(hashed_guesses, users_and_hashes[i]);
-    //     if (found_index){
-    //         printf("%s:%s\n", users_and_hashes[i-1], guesses_lowercase[found_index]);
-    //         fflush(stdout);
-    //         count++;
-    //     }
-    // }
 
     //************************************//
     //************ Numbers *************//
@@ -232,7 +221,7 @@ int main()
     num_guesses = (int) guesses[0];
 
     // Non-combined numbers
-    hashed_guesses = hash_guesses(guesses, num_guesses, MD5);
+    hashed_guesses = hash_guesses(guesses, num_guesses, salt);
     for (int i = 1; i < num_shadows; i+=2)
     {
         found_index = crack_password(hashed_guesses, users_and_hashes[i]);
@@ -253,7 +242,7 @@ int main()
     for (int j = 1; j < num_guesses; j++)
     {
         combined_guesses = combine_word(guesses_lowercase, num_guesses, j);
-        hashed_guesses = hash_guesses(combined_guesses, num_guesses, MD5);
+        hashed_guesses = hash_guesses(combined_guesses, num_guesses, salt);
         for (int i = 1; i < num_shadows; i+=2)
         {
             found_index = crack_password(hashed_guesses, users_and_hashes[i]);
