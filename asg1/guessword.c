@@ -22,7 +22,7 @@
 *******************************************************************************/
 #define MD5 "$1$QM"
 #define CHUNKSIZE 100
-#define HASH_CHUNKSIZE 20
+#define HASH_CHUNKSIZE 60
 
 /******************************************************************************
 * Main code
@@ -60,7 +60,7 @@ char** get_file_lines(void *filepath){
     i = 1;
 
     // Read file and store in array
-    while(fgets((char* restrict) &single_read, CHUNKSIZE, f) != NULL && i <= (num_lines + 1)) {
+    while(fgets((char* restrict) &single_read, CHUNKSIZE, f) != NULL) {
         single_read[strcspn(single_read, "\n")] = 0;
         strcpy(input_file_lines[i], (const char * restrict) single_read);
         i++;
@@ -91,7 +91,6 @@ char** combine_word(char** guesses, int len_guesses, int first_word_idx) {
     char** combined_words = malloc((len_guesses + 1) * sizeof(char*) * HASH_CHUNKSIZE);
 
     char* first_word = guesses[first_word_idx];
-
     // Concatenate all strings
     for (int i = 1; i < len_guesses; i++)
     {
@@ -101,9 +100,7 @@ char** combine_word(char** guesses, int len_guesses, int first_word_idx) {
             combined_words[i] = malloc(HASH_CHUNKSIZE * sizeof(char));
             strncpy(tmp_char, guesses[i], HASH_CHUNKSIZE);
             strcat(tmp_char, first_word);
-            combined_words[i] = malloc(HASH_CHUNKSIZE * sizeof(char));
             strncpy(combined_words[i], tmp_char, HASH_CHUNKSIZE);
-            free(tmp_char);
     }
 
     return combined_words;
@@ -138,6 +135,7 @@ char** hash_guesses(char** guesses, int len_guesses, char** salt) {
     {
         // Clean string of return character
         guesses[i][strcspn(guesses[i], "\n")] = 0;
+        // printf("guesses[%d] = %s\n", i, guesses[i]);
         tmp_hash = crypt(guesses[i], MD5);
         strcpy(hashed_guesses[i], (const char * restrict) tmp_hash);
     }
@@ -154,7 +152,7 @@ int main()
     time(&start);
 
     // Read file with hashed passwords
-    char** lines = get_file_lines("training-shadow.txt");
+    char** lines = get_file_lines("testing-shadow.txt");
     int num_shadows = lines[0];
     int count = 0;
     int found_index;
@@ -194,7 +192,6 @@ int main()
     guesses_lowercase = get_file_lines("dictionary/preprocessed_lower.txt");
 
     num_guesses = guesses_lowercase[0];
-
     // Non-combined numbers
     hashed_guesses = hash_guesses(guesses_lowercase, num_guesses, MD5);
     for (int i = 1; i < num_shadows; i+=2)
@@ -208,12 +205,31 @@ int main()
     }
 
     //************************************//
+    //************ Lowercase with small numbers *************//
+    //************************************//
+    // // Read preprocessed lowercase file (possible passwords)
+    // guesses_lowercase = get_file_lines("dictionary/preprocessed_lower_withnumbers.txt");
+
+    // num_guesses = guesses_lowercase[0];
+    // // Non-combined numbers
+    // hashed_guesses = hash_guesses(guesses_lowercase, num_guesses, MD5);
+    // for (int i = 1; i < num_shadows; i+=2)
+    // {
+    //     found_index = crack_password(hashed_guesses, users_and_hashes[i]);
+    //     if (found_index){
+    //         printf("%s:%s\n", users_and_hashes[i-1], guesses_lowercase[found_index]);
+    //         fflush(stdout);
+    //         count++;
+    //     }
+    // }
+
+    //************************************//
     //************ Numbers *************//
     //************************************//
     // Read preprocessed numbers file (possible passwords)
-    guesses = get_file_lines("dictionary/preprocessed_numbers2.txt");
+    guesses = get_file_lines("dictionary/preprocessed_numbers.txt");
 
-    num_guesses = guesses[0];
+    num_guesses = (int) guesses[0];
 
     // Non-combined numbers
     hashed_guesses = hash_guesses(guesses, num_guesses, MD5);
@@ -227,11 +243,13 @@ int main()
         }
     }
 
+    //************************************//
+    //***** Long word combinations *******//
+    //************************************//
+    // Read preprocessed longwords file (possible passwords)
+    guesses_lowercase = get_file_lines("dictionary/preprocessed_lower_longwords.txt");
+    num_guesses = (int) guesses_lowercase[0];
 
-    num_guesses = guesses_lowercase[0];
-
-    // TODO multiplier loop stuff
-    // OR PASSING HASHES THROUGH TO COMBINE WORD THREAD
     for (int j = 1; j < num_guesses; j++)
     {
         combined_guesses = combine_word(guesses_lowercase, num_guesses, j);
